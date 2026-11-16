@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-
+import { useNavigate, useSearch } from "@tanstack/react-router";
 const nfts = [
   { id: 1, name: "Cosmic Dreams #024", collection: "Cosmic Dreams", category: "Arte", price: "0.45 ETH", color: "#7b61ff", emoji: "🌌" },
   { id: 2, name: "Neon Samurai #118", collection: "Neon Samurai", category: "Games", price: "0.32 ETH", color: "#ee4ba8", emoji: "⚔️" },
@@ -9,9 +9,30 @@ const nfts = [
 ];
 
 export default function App() {
-  const [busca, setBusca] = useState("");
-  const [categoria, setCategoria] = useState("Todos");
-  const [ordem, setOrdem] = useState("recentes");
+const search = useSearch({ strict: false });
+const navigate = useNavigate();
+
+const busca = search.busca ?? "";
+const categoria = search.categoria ?? "Todos";
+const ordem = search.ordem ?? "recentes";
+
+const atualizarFiltros = (
+  alteracoes: Partial<{
+    busca: string;
+    categoria: string;
+    ordem: string;
+  }>,
+) => {
+  navigate({
+    to: "/",
+    search: (anterior) => ({
+      ...anterior,
+      ...alteracoes,
+      pagina: 1,
+    }),
+    replace: true,
+  });
+};
 
   const nftsFiltrados = nfts
     .filter((nft) => {
@@ -71,13 +92,13 @@ export default function App() {
             aria-label="Buscar NFTs"
             placeholder="⌕  Buscar NFTs..."
             value={busca}
-            onChange={(evento) => setBusca(evento.target.value)}
+            onChange={(evento) => atualizarFiltros({ busca: evento.target.value })}
           />
 
           <select
             aria-label="Ordenar NFTs"
             value={ordem}
-            onChange={(evento) => setOrdem(evento.target.value)}
+            onChange={(evento) => atualizarFiltros({ ordem: evento.target.value })}
           >
             <option value="recentes">Mais recentes</option>
             <option value="menor-preco">Menor preço</option>
@@ -90,7 +111,7 @@ export default function App() {
             <button
               key={item}
               className={categoria === item ? "selected" : ""}
-              onClick={() => setCategoria(item)}
+              onClick={() => atualizarFiltros({ categoria: item })}
               aria-pressed={categoria === item}
             >
               {item}
