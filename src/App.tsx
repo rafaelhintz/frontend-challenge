@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+
+import React, { useState } from "react";
+
 const nfts = [
   { id: 1, name: "Cosmic Dreams #024", collection: "Cosmic Dreams", category: "Arte", price: "0.45 ETH", color: "#7b61ff", emoji: "🌌" },
   { id: 2, name: "Neon Samurai #118", collection: "Neon Samurai", category: "Games", price: "0.32 ETH", color: "#ee4ba8", emoji: "⚔️" },
@@ -11,79 +13,78 @@ export default function App() {
   const [categoria, setCategoria] = useState("Todos");
   const [ordem, setOrdem] = useState("recentes");
 
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
+  const nftsFiltrados = nfts
+    .filter((nft) => {
+      const correspondeBusca =
+        `${nft.name} ${nft.collection}`
+          .toLowerCase()
+          .includes(busca.toLowerCase());
 
-  setBusca(params.get("busca") ?? "");
-  setCategoria(params.get("categoria") ?? "Todos");
-  setOrdem(params.get("ordem") ?? "recentes");
-}, []);
+      const correspondeCategoria =
+        categoria === "Todos" || nft.category === categoria;
 
-useEffect(() => {
-  const params = new URLSearchParams();
+      return correspondeBusca && correspondeCategoria;
+    })
+    .sort((a, b) => {
+      const precoA = Number.parseFloat(a.price);
+      const precoB = Number.parseFloat(b.price);
 
-  if (busca) params.set("busca", busca);
-  if (categoria !== "Todos") params.set("categoria", categoria);
-  if (ordem !== "recentes") params.set("ordem", ordem);
+      if (ordem === "menor-preco") return precoA - precoB;
+      if (ordem === "maior-preco") return precoB - precoA;
+      return 0;
+    });
 
-  const query = params.toString();
-  const novaUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
-
-  window.history.replaceState({}, "", novaUrl);
-}, [busca, categoria, ordem]);
-
-const nftsFiltrados = nfts
-  .filter((nft) => {
-    const correspondeBusca =
-      `${nft.name} ${nft.collection}`.toLowerCase().includes(busca.toLowerCase());
-
-    const correspondeCategoria =
-      categoria === "Todos" || nft.category === categoria;
-
-    return correspondeBusca && correspondeCategoria;
-  })
-  .sort((a, b) => {
-    const precoA = Number.parseFloat(a.price);
-    const precoB = Number.parseFloat(b.price);
-
-    if (ordem === "menor-preco") return precoA - precoB;
-    if (ordem === "maior-preco") return precoB - precoA;
-    return 0;
-  });
   return (
     <main className="page">
       <header className="topbar">
-        <a className="logo" href="/">JUNGLE<span>MARKET</span></a>
-        <nav><a href="#explore">Explorar</a><a href="#collections">Coleções</a></nav>
+        <a className="logo" href="/">
+          JUNGLE<span>MARKET</span>
+        </a>
+        <nav>
+          <a href="#explore">Explorar</a>
+          <a href="#collections">Coleções</a>
+        </nav>
         <button className="connect">Conectar carteira</button>
       </header>
 
       <section className="hero">
         <p className="eyebrow">O FUTURO DA ARTE DIGITAL</p>
-        <h1>Descubra e colecione<br /><span>NFTs extraordinários</span></h1>
+        <h1>
+          Descubra e colecione
+          <br />
+          <span>NFTs extraordinários</span>
+        </h1>
         <p>Explore criações únicas de artistas do mundo todo.</p>
-        <a className="cta" href="#explore">Explorar NFTs <span>→</span></a>
+        <a className="cta" href="#explore">
+          Explorar NFTs <span>→</span>
+        </a>
       </section>
 
       <section id="explore" className="catalog">
         <div className="section-heading">
-          <div><p className="eyebrow">CATÁLOGO</p><h2>Em destaque</h2></div>
+          <div>
+            <p className="eyebrow">CATÁLOGO</p>
+            <h2>Em destaque</h2>
+          </div>
+
           <input
             aria-label="Buscar NFTs"
             placeholder="⌕  Buscar NFTs..."
             value={busca}
             onChange={(evento) => setBusca(evento.target.value)}
           />
+
           <select
-              aria-label="Ordenar NFTs"
-              value={ordem}
-              onChange={(evento) => setOrdem(evento.target.value)}
-            >
-              <option value="recentes">Mais recentes</option>
-              <option value="menor-preco">Menor preço</option>
-              <option value="maior-preco">Maior preço</option>
-            </select>
+            aria-label="Ordenar NFTs"
+            value={ordem}
+            onChange={(evento) => setOrdem(evento.target.value)}
+          >
+            <option value="recentes">Mais recentes</option>
+            <option value="menor-preco">Menor preço</option>
+            <option value="maior-preco">Maior preço</option>
+          </select>
         </div>
+
         <div className="filters">
           {["Todos", "Arte", "Games", "Colecionáveis"].map((item) => (
             <button
@@ -95,23 +96,35 @@ const nftsFiltrados = nfts
               {item}
             </button>
           ))}
-
         </div>
+
         <div className="grid">
           {nftsFiltrados.map((nft) => (
             <article className="card" key={nft.id}>
-              <div className="art" style={{ background: `linear-gradient(145deg, ${nft.color}, #171322)` }}>
-                <span>{nft.emoji}</span><button aria-label={`Favoritar ${nft.name}`}>♡</button>
+              <div
+                className="art"
+                style={{
+                  background: `linear-gradient(145deg, ${nft.color}, #171322)`,
+                }}
+              >
+                <span>{nft.emoji}</span>
+                <button aria-label={`Favoritar ${nft.name}`}>♡</button>
               </div>
+
               <div className="card-info">
-                <p>{nft.collection}</p><h3>{nft.name}</h3>
-                <div className="price"><span>Preço atual</span><strong>{nft.price}</strong></div>
+                <p>{nft.collection}</p>
+                <h3>{nft.name}</h3>
+                <div className="price">
+                  <span>Preço atual</span>
+                  <strong>{nft.price}</strong>
+                </div>
                 <button className="buy">Ver NFT</button>
               </div>
             </article>
           ))}
         </div>
       </section>
+
       <footer>JUNGLE MARKET · Arte digital, sem limites.</footer>
     </main>
   );
