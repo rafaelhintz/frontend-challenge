@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 const nfts = [
   { id: 1, name: "Cosmic Dreams #024", collection: "Cosmic Dreams", category: "Arte", price: "0.45 ETH", color: "#7b61ff", emoji: "🌌" },
   { id: 2, name: "Neon Samurai #118", collection: "Neon Samurai", category: "Games", price: "0.32 ETH", color: "#ee4ba8", emoji: "⚔️" },
@@ -10,6 +10,28 @@ export default function App() {
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("Todos");
   const [ordem, setOrdem] = useState("recentes");
+
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+
+  setBusca(params.get("busca") ?? "");
+  setCategoria(params.get("categoria") ?? "Todos");
+  setOrdem(params.get("ordem") ?? "recentes");
+}, []);
+
+useEffect(() => {
+  const params = new URLSearchParams();
+
+  if (busca) params.set("busca", busca);
+  if (categoria !== "Todos") params.set("categoria", categoria);
+  if (ordem !== "recentes") params.set("ordem", ordem);
+
+  const query = params.toString();
+  const novaUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+
+  window.history.replaceState({}, "", novaUrl);
+}, [busca, categoria, ordem]);
+
 const nftsFiltrados = nfts
   .filter((nft) => {
     const correspondeBusca =
@@ -52,6 +74,15 @@ const nftsFiltrados = nfts
             value={busca}
             onChange={(evento) => setBusca(evento.target.value)}
           />
+          <select
+              aria-label="Ordenar NFTs"
+              value={ordem}
+              onChange={(evento) => setOrdem(evento.target.value)}
+            >
+              <option value="recentes">Mais recentes</option>
+              <option value="menor-preco">Menor preço</option>
+              <option value="maior-preco">Maior preço</option>
+            </select>
         </div>
         <div className="filters">
           {["Todos", "Arte", "Games", "Colecionáveis"].map((item) => (
