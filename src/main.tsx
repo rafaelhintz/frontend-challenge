@@ -11,6 +11,7 @@ import App from "./App";
 import "./style.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import NFTDetail from "./NFTDetail";
+import Cart from "./Cart";
 
 const queryClient = new QueryClient();
 const rootRoute = createRootRoute();
@@ -32,6 +33,19 @@ const nftRoute = createRoute({
   path: "/nft/$id",
   component: NFTDetail,
 });
+
+const cartRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/cart",
+  validateSearch: () => ({
+    busca: undefined,
+    categoria: undefined,
+    ordem: undefined,
+    pagina: 1,
+  }),
+  component: Cart,
+});
+
 const routeTree = rootRoute.addChildren([indexRoute, nftRoute]);
 const router = createRouter({ routeTree });
 

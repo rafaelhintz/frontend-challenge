@@ -33,6 +33,26 @@ function loadCart() {
 loadCart();
 
 export const handlers = [
+
+http.get("/api/cart", () => {
+  return HttpResponse.json({ items: cart });
+}),
+
+
+http.post("/api/cart", async ({ request }) => {
+  const body = (await request.json()) as { nftId: number; quantity?: number };
+  const existente = cart.find((item) => item.nftId === body.nftId);
+
+  if (existente) {
+    existente.quantity += body.quantity ?? 1;
+  } else {
+    cart.push({ nftId: body.nftId, quantity: body.quantity ?? 1 });
+  }
+
+  saveCart();
+  return HttpResponse.json({ items: cart });
+}),
+
   http.get("/api/nfts", ({ request }) => {
     const url = new URL(request.url);
     const pagina = Math.max(1, Number(url.searchParams.get("pagina") ?? 1));
@@ -85,4 +105,45 @@ export const handlers = [
 
     return HttpResponse.json(nft);
   }),
+
+      http.get("/api/cart", () => {
+      return HttpResponse.json({ items: cart });
+    }),
+
+    http.post("/api/cart", async ({ request }) => {
+      const body = (await request.json()) as {
+        nftId: number;
+        quantity?: number;
+      };
+
+      const existente = cart.find((item) => item.nftId === body.nftId);
+
+      if (existente) {
+        existente.quantity += body.quantity ?? 1;
+      } else {
+        cart.push({ nftId: body.nftId, quantity: body.quantity ?? 1 });
+      }
+
+      saveCart();
+      return HttpResponse.json({ items: cart });
+    }),
+
+        http.post("/api/cart", async ({ request }) => {
+      const body = (await request.json()) as {
+        nftId: number;
+        quantity?: number;
+      };
+
+      const existente = cart.find((item) => item.nftId === body.nftId);
+
+      if (existente) {
+        existente.quantity += body.quantity ?? 1;
+      } else {
+        cart.push({ nftId: body.nftId, quantity: body.quantity ?? 1 });
+      }
+
+      saveCart();
+      return HttpResponse.json({ items: cart });
+    }),
+    
 ];

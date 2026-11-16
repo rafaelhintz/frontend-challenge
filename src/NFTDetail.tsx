@@ -1,9 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { buscarNFT } from "./api/nfts";
+import React from "react";
+import axios from "axios";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 
 export default function NFTDetail() {
   const { id } = useParams({ strict: false });
+
+  const queryClient = useQueryClient();
+
+const adicionarAoCarrinho = useMutation({
+  mutationFn: () =>
+    axios.post("/api/cart", {
+      nftId: Number(id),
+      quantity: 1,
+    }),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["cart"] });
+    alert("NFT adicionado ao carrinho!");
+  },
+});
 
   const {
     data: nft,
@@ -66,9 +84,15 @@ export default function NFTDetail() {
             <span>Preço atual</span>
             <strong>{nft.price} ETH</strong>
           </div>
-          <button className="buy" type="button">
-            Adicionar ao carrinho
-          </button>
+            <button
+            className="buy"
+            type="button"
+            onClick={() => adicionarAoCarrinho.mutate()}
+            disabled={adicionarAoCarrinho.isPending}
+            >
+            {adicionarAoCarrinho.isPending ? "Adicionando..." : "Adicionar ao carrinho"}
+            </button>
+            
         </div>
       </article>
     </main>
