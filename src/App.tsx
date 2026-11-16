@@ -1,72 +1,52 @@
-
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-const nfts = [
-  { id: 1, name: "Cosmic Dreams #024", collection: "Cosmic Dreams", category: "Arte", price: "0.45 ETH", color: "#7b61ff", emoji: "🌌" },
-  { id: 2, name: "Neon Samurai #118", collection: "Neon Samurai", category: "Games", price: "0.32 ETH", color: "#ee4ba8", emoji: "⚔️" },
-  { id: 3, name: "Digital Garden #067", collection: "Digital Garden", category: "Arte", price: "0.28 ETH", color: "#43b581", emoji: "🌿" },
-  { id: 4, name: "Pixel Odyssey #209", collection: "Pixel Odyssey", category: "Games", price: "0.19 ETH", color: "#ed9f43", emoji: "🪐" },
-];
+import { useQuery } from "@tanstack/react-query";
+import { buscarNFTs } from "./api/nfts";
 
 export default function App() {
-const search = useSearch({ strict: false });
-const navigate = useNavigate();
+  const search = useSearch({ strict: false });
+  const navigate = useNavigate();
 
-const busca = search.busca ?? "";
-const categoria = search.categoria ?? "Todos";
-const ordem = search.ordem ?? "recentes";
+  const busca = search.busca ?? "";
+  const categoria = search.categoria ?? "Todos";
+  const ordem = search.ordem ?? "recentes";
+  const paginaAtual = search.pagina ?? 1;
 
-const atualizarFiltros = (
-  alteracoes: Record<string, string | number>,
-) => {
-  navigate({
-    to: "/",
-    search: {
-      ...search,
-      busca: search.busca,
-      categoria: search.categoria,
-      ordem: search.ordem,
-      ...alteracoes,
-      pagina:
-  alteracoes.pagina === undefined
-    ? 1
-    : Number(alteracoes.pagina),
+  const {
+    data: paginaNFTs = {
+      items: [],
+      pagina: 1,
+      total: 0,
+      totalPaginas: 1,
     },
-    replace: true,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["nfts", busca, categoria, ordem, paginaAtual],
+    queryFn: () =>
+      buscarNFTs({
+        busca,
+        categoria,
+        ordem,
+        pagina: paginaAtual,
+      }),
   });
-};
 
-  const nftsFiltrados = nfts
-    .filter((nft) => {
-      const correspondeBusca =
-        `${nft.name} ${nft.collection}`
-          .toLowerCase()
-          .includes(busca.toLowerCase());
-
-      const correspondeCategoria =
-        categoria === "Todos" || nft.category === categoria;
-
-      return correspondeBusca && correspondeCategoria;
-    })
-    .sort((a, b) => {
-      const precoA = Number.parseFloat(a.price);
-      const precoB = Number.parseFloat(b.price);
-
-      if (ordem === "menor-preco") return precoA - precoB;
-      if (ordem === "maior-preco") return precoB - precoA;
-      return 0;
+  const atualizarFiltros = (
+    alteracoes: Record<string, string | number>,
+  ) => {
+    navigate({
+      to: "/",
+      search: {
+        ...search,
+        ...alteracoes,
+        pagina:
+          alteracoes.pagina === undefined ? 1 : Number(alteracoes.pagina),
+      },
+      replace: true,
     });
-  const itensPorPagina = 2;
-  const totalPaginas = Math.max(
-    1,
-    Math.ceil(nftsFiltrados.length / itensPorPagina),
-  );
-  const pagina = search.pagina ?? 1;
-
-  const nftsDaPagina = nftsFiltrados.slice(
-    (pagina - 1) * itensPorPagina,
-    pagina * itensPorPagina,
-  );
+  };
 
   return (
     <main className="page">
@@ -78,7 +58,9 @@ const atualizarFiltros = (
           <a href="#explore">Explorar</a>
           <a href="#collections">Coleções</a>
         </nav>
-        <button className="connect">Conectar carteira</button>
+        <button className="connect" type="button">
+          Conectar carteira
+        </button>
       </header>
 
       <section className="hero">
@@ -105,13 +87,17 @@ const atualizarFiltros = (
             aria-label="Buscar NFTs"
             placeholder="⌕  Buscar NFTs..."
             value={busca}
-            onChange={(evento) => atualizarFiltros({ busca: evento.target.value })}
+            onChange={(evento) =>
+              atualizarFiltros({ busca: evento.target.value })
+            }
           />
 
           <select
             aria-label="Ordenar NFTs"
             value={ordem}
-            onChange={(evento) => atualizarFiltros({ ordem: evento.target.value })}
+            onChange={(evento) =>
+              atualizarFiltros({ ordem: evento.target.value })
+            }
           >
             <option value="recentes">Mais recentes</option>
             <option value="menor-preco">Menor preço</option>
@@ -123,6 +109,7 @@ const atualizarFiltros = (
           {["Todos", "Arte", "Games", "Colecionáveis"].map((item) => (
             <button
               key={item}
+              type="button"
               className={categoria === item ? "selected" : ""}
               onClick={() => atualizarFiltros({ categoria: item })}
               aria-pressed={categoria === item}
@@ -132,8 +119,23 @@ const atualizarFiltros = (
           ))}
         </div>
 
-       <div className="grid">
-            {nftsDaPagina.map((nft) => (
+        {isLoading && <p role="status">Carregando NFTs...</p>}
+
+        {isError && (
+          <div role="alert">
+            <p>Não foi possível carregar os NFTs.</p>
+            <button type="button" onClick={() => refetch()}>
+              Tentar novamente
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !isError && paginaNFTs.items.length === 0 && (
+          <p>Nenhum NFT encontrado.</p>
+        )}
+
+        <div className="grid">
+          {paginaNFTs.items.map((nft) => (
             <article className="card" key={nft.id}>
               <div
                 className="art"
@@ -142,7 +144,12 @@ const atualizarFiltros = (
                 }}
               >
                 <span>{nft.emoji}</span>
-                <button aria-label={`Favoritar ${nft.name}`}>♡</button>
+                <button
+                  type="button"
+                  aria-label={`Favoritar ${nft.name}`}
+                >
+                  ♡
+                </button>
               </div>
 
               <div className="card-info">
@@ -150,36 +157,43 @@ const atualizarFiltros = (
                 <h3>{nft.name}</h3>
                 <div className="price">
                   <span>Preço atual</span>
-                  <strong>{nft.price}</strong>
+                  <strong>{nft.price} ETH</strong>
                 </div>
-                <button className="buy">Ver NFT</button>
+                <button className="buy" type="button">
+                  Ver NFT
+                </button>
               </div>
             </article>
           ))}
         </div>
-        
-        
+
         <div className="pagination">
           <button
-            disabled={pagina <= 1}
-            onClick={() => atualizarFiltros({ pagina: Math.max(1, pagina - 1) })}
+            type="button"
+            disabled={paginaAtual <= 1}
+            onClick={() =>
+              atualizarFiltros({ pagina: Math.max(1, paginaAtual - 1) })
+            }
           >
             Anterior
           </button>
 
           <span>
-            Página {pagina} de {totalPaginas}
+            Página {paginaNFTs.pagina} de {paginaNFTs.totalPaginas}
           </span>
 
           <button
-            disabled={pagina >= totalPaginas}
-            onClick={() => atualizarFiltros({ pagina: Math.min(totalPaginas, pagina + 1) })}
+            type="button"
+            disabled={paginaAtual >= paginaNFTs.totalPaginas}
+            onClick={() =>
+              atualizarFiltros({
+                pagina: Math.min(paginaNFTs.totalPaginas, paginaAtual + 1),
+              })
+            }
           >
             Próxima
           </button>
         </div>
-
-
       </section>
 
       <footer>JUNGLE MARKET · Arte digital, sem limites.</footer>

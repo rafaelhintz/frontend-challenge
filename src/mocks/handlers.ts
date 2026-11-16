@@ -7,9 +7,14 @@ const nfts = [
   { id: 4, name: "Pixel Odyssey #209", collection: "Pixel Odyssey", category: "Games", price: "0.19", color: "#ed9f43", emoji: "🪐" },
 ];
 
+
 export const handlers = [
   http.get("/api/nfts", ({ request }) => {
+    
     const url = new URL(request.url);
+    const pagina = Number(url.searchParams.get("pagina") ?? 1);
+    const porPagina = 2;
+
     const busca = url.searchParams.get("busca")?.toLowerCase() ?? "";
     const categoria = url.searchParams.get("categoria") ?? "Todos";
     const ordem = url.searchParams.get("ordem") ?? "recentes";
@@ -26,12 +31,22 @@ export const handlers = [
       resultados = [...resultados].sort(
         (a, b) => Number(a.price) - Number(b.price),
       );
-    } else if (ordem === "maior-preco") {
-      resultados = [...resultados].sort(
-        (a, b) => Number(b.price) - Number(a.price),
-      );
-    }
+            } else if (ordem === "maior-preco") {
+          resultados = [...resultados].sort(
+            (a, b) => Number(b.price) - Number(a.price),
+          );
+        }
 
-    return HttpResponse.json({ items: resultados });
-  }),
+        const total = resultados.length;
+        const inicio = (pagina - 1) * porPagina;
+        const items = resultados.slice(inicio, inicio + porPagina);
+        const totalPaginas = Math.max(1, Math.ceil(total / porPagina));
+
+        return HttpResponse.json({
+          items,
+          pagina,
+          total,
+          totalPaginas,
+        });
+        }),
 ];
