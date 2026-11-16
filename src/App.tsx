@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { buscarNFTs } from "./api/nfts";
 
@@ -33,16 +33,21 @@ export default function App() {
       }),
   });
 
-  const atualizarFiltros = (
-    alteracoes: Record<string, string | number>,
+    const atualizarFiltros = (
+    alteracoes: {
+      busca?: string;
+      categoria?: string;
+      ordem?: string;
+      pagina?: number;
+    },
   ) => {
     navigate({
       to: "/",
       search: {
-        ...search,
-        ...alteracoes,
-        pagina:
-          alteracoes.pagina === undefined ? 1 : Number(alteracoes.pagina),
+        busca: alteracoes.busca ?? busca,
+        categoria: alteracoes.categoria ?? categoria,
+        ordem: alteracoes.ordem ?? ordem,
+        pagina: alteracoes.pagina ?? 1,
       },
       replace: true,
     });
@@ -159,9 +164,9 @@ export default function App() {
                   <span>Preço atual</span>
                   <strong>{nft.price} ETH</strong>
                 </div>
-                <button className="buy" type="button">
-                  Ver NFT
-                </button>
+                  <Link className="buy" to="/nft/$id" params={{ id: String(nft.id) }}>
+                    Ver NFT
+                  </Link>
               </div>
             </article>
           ))}

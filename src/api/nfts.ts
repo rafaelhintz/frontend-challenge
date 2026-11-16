@@ -28,3 +28,8 @@ export async function buscarNFTs(params: NFTQuery): Promise<NFTPage> {
   const resposta = await axios.get<NFTPage>("/api/nfts", { params });
   return resposta.data;
 }
+
+export async function buscarNFT(id: string) {
+  const resposta = await axios.get<NFT>(`/api/nfts/${id}`);
+  return resposta.data;
+}

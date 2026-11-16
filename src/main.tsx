@@ -10,6 +10,7 @@ import {
 import App from "./App";
 import "./style.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import NFTDetail from "./NFTDetail";
 
 const queryClient = new QueryClient();
 const rootRoute = createRootRoute();
@@ -26,8 +27,12 @@ validateSearch: (search: Record<string, unknown>) => ({
 }),
   component: App,
 });
-
-const routeTree = rootRoute.addChildren([indexRoute]);
+const nftRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/nft/$id",
+  component: NFTDetail,
+});
+const routeTree = rootRoute.addChildren([indexRoute, nftRoute]);
 const router = createRouter({ routeTree });
 
 declare module "@tanstack/react-router" {
