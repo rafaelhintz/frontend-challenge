@@ -50,4 +50,45 @@ footer { padding: 25px 0; border-top: 1px solid #292630; color: #817b89; text-al
   .section-heading input { width: 100%; }
   .grid { grid-template-columns: 1fr; }
   .art { height: 270px; }
+  
+}
+.section-heading {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.section-heading input {
+  flex: 1 1 220px;
+}
+
+.section-heading select {
+  min-width: 170px;
+  padding: 12px;
+  color: white;
+  background: #17151c;
+  border: 1px solid #35313d;
+  border-radius: 8px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0;
+  color: #bcb7c5;
+}
+
+.pagination button {
+  padding: 10px 16px;
+  border: 1px solid #8057ed;
+  border-radius: 7px;
+  color: white;
+  background: #8057ed;
+  font: inherit;
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }

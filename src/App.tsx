@@ -17,19 +17,21 @@ const categoria = search.categoria ?? "Todos";
 const ordem = search.ordem ?? "recentes";
 
 const atualizarFiltros = (
-  alteracoes: Partial<{
-    busca: string;
-    categoria: string;
-    ordem: string;
-  }>,
+  alteracoes: Record<string, string | number>,
 ) => {
   navigate({
     to: "/",
-    search: (anterior) => ({
-      ...anterior,
+    search: {
+      ...search,
+      busca: search.busca,
+      categoria: search.categoria,
+      ordem: search.ordem,
       ...alteracoes,
-      pagina: 1,
-    }),
+      pagina:
+  alteracoes.pagina === undefined
+    ? 1
+    : Number(alteracoes.pagina),
+    },
     replace: true,
   });
 };
@@ -54,6 +56,17 @@ const atualizarFiltros = (
       if (ordem === "maior-preco") return precoB - precoA;
       return 0;
     });
+  const itensPorPagina = 2;
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(nftsFiltrados.length / itensPorPagina),
+  );
+  const pagina = search.pagina ?? 1;
+
+  const nftsDaPagina = nftsFiltrados.slice(
+    (pagina - 1) * itensPorPagina,
+    pagina * itensPorPagina,
+  );
 
   return (
     <main className="page">
@@ -119,8 +132,8 @@ const atualizarFiltros = (
           ))}
         </div>
 
-        <div className="grid">
-          {nftsFiltrados.map((nft) => (
+       <div className="grid">
+            {nftsDaPagina.map((nft) => (
             <article className="card" key={nft.id}>
               <div
                 className="art"
@@ -144,6 +157,29 @@ const atualizarFiltros = (
             </article>
           ))}
         </div>
+        
+        
+        <div className="pagination">
+          <button
+            disabled={pagina <= 1}
+            onClick={() => atualizarFiltros({ pagina: Math.max(1, pagina - 1) })}
+          >
+            Anterior
+          </button>
+
+          <span>
+            Página {pagina} de {totalPaginas}
+          </span>
+
+          <button
+            disabled={pagina >= totalPaginas}
+            onClick={() => atualizarFiltros({ pagina: Math.min(totalPaginas, pagina + 1) })}
+          >
+            Próxima
+          </button>
+        </div>
+
+
       </section>
 
       <footer>JUNGLE MARKET · Arte digital, sem limites.</footer>
