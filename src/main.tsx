@@ -12,6 +12,7 @@ import "./style.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import NFTDetail from "./NFTDetail";
 import Cart from "./Cart";
+import Checkout from "./checkout";
 
 const queryClient = new QueryClient();
 const rootRoute = createRootRoute();
@@ -46,7 +47,24 @@ const cartRoute = createRoute({
   component: Cart,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, nftRoute]);
+const checkoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/checkout",
+  validateSearch: () => ({
+    busca: undefined,
+    categoria: undefined,
+    ordem: undefined,
+    pagina: 1,
+  }),
+  component: Checkout,
+});
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  nftRoute,
+  cartRoute,
+  checkoutRoute,
+]);
 const router = createRouter({ routeTree });
 
 declare module "@tanstack/react-router" {
